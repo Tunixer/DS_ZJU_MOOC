@@ -128,13 +128,14 @@ int main(){
 	string temp; 
 	cin>>N1;
 	Tree T1(N1);
+	//T1 = Tree(N1); 
 	getline(cin,temp);
 	if(N1!=0){
 		T1.Input();			
 	}
 
 	cin>>N2;
-	Tree T2(N2);
+	Tree T2(N2); 
 	getline(cin,temp);
 	if(N2!=0){
 		T2.Input();			
