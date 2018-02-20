@@ -1,5 +1,7 @@
+
 #include <iostream>
 #include <vector>
+#include <set>
 using namespace std;
 
 void PrintArray(vector<int> &T) {
@@ -12,11 +14,15 @@ class Graph {
 private:
 	int N;
 	int **GM;
+	int count,MinDist,maxres,accres,accDist;
 	vector<int> NumEm,res,dist,path;
-	vector<bool> IsShort,IsRes;
+	vector<bool> IsVisit,IsShort,IsRes;
 public:
 	Graph(int n = 0){
 		if (n > 0) {
+			maxres = 0;
+			count = 0;
+			accres = 0;
 			N = n;
 			GM = new int*[n];
 			for (int i = 0; i < n; i++)
@@ -45,13 +51,14 @@ public:
 			res.push_back(0);
 			IsShort.push_back(false);
 			IsRes.push_back(false);
+			IsVisit.push_back(false);
 		}
 		res[S] = NumEm[S];
 		IsShort[S] = true;
 		IsRes[S] = true;
 		for (int i = 0; i < N; i++) {
 			dist[i] = GM[S][i];
-			if (GM[S][i] != 0xffff && GM[S][i] != 0) {
+			if (GM[S][i] < 0xffff / 2 && GM[S][i] != 0) {
 				path[i] = S;
 				res[i] = res[S] + NumEm[i];
 			}
@@ -65,19 +72,31 @@ public:
 				}
 			}
 		}
+		MinDist = dist[T];
 		return dist[T];
 	}
-	int MaxRes(int S, int T) {
-		for (int i = 1; i < N; i++) {
-			int idx = ArrayMax(res);
-			for (int j = 0; j < N; j++) {
-				if ((dist[j] == dist[idx] + GM[idx][j]) && (res[j]< res[idx]+NumEm[j])&&(idx!=j)&&(GM[idx][j]!=0xffff)) {
-					res[j] = res[idx] + NumEm[j];
-				}
+//i为访问第i个节点
+//dt为destination
+	void DFS(int i,int dt) {
+		if (accDist > MinDist) return;
+		IsVisit[i] = true;
+		accres += NumEm[i];
+		if (i == dt) {
+			count++;
+			if (accres >= maxres) maxres = accres;
+			IsVisit[i] = false;
+			accres -= NumEm[i];
+			return;
+		}
+		for (int j = 0; j < N; j++) {
+			if ((GM[i][j] != 0xffff) && (i != j)&&(IsVisit[j] != true)) {
+				accDist += GM[i][j];
+				DFS(j,dt);
+				accDist -= GM[i][j];
 			}
 		}
-		
-		return res[T];
+		IsVisit[i] = false;
+		accres -= NumEm[i];
 	}
 	int ArrayMin(vector<int> &s) {
 		int idx;
@@ -118,6 +137,12 @@ public:
 	int getWeight(int i, int j) {
 		return GM[i][j];
 	}
+	int getCount() {
+		return count;
+	}
+	int getRes() {
+		return maxres;
+	}
 };
 
 int main()
@@ -138,9 +163,13 @@ int main()
 		G.input(s, t, w);
 	}
 	vector<int> path;
-	path.push_back(G.MinPath(C1, C2));
-	path.push_back(G.MaxRes(C1, C2));
-	cout << path[0] << ' ' << path[1];
+	
+	G.MinPath(C1, C2);
+	G.DFS(C1, C2);
+
+	path.push_back(G.getCount());
+	path.push_back(G.getRes());
+	cout << path[0] << ' ' << path[1]<<endl;
     return 0;
 }
 
